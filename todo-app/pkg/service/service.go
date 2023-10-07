@@ -1,5 +1,7 @@
 package service
 
+import "lincoln.boris/todo/pkg/repository"
+
 type Authorization interface {}
 
 type TodoList interface {}
