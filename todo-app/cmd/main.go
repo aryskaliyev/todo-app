@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/spf13/viper"
 	"lincoln.boris/todo"
 	"lincoln.boris/todo/pkg/handler"
 	"lincoln.boris/todo/pkg/repository"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	if err := initConfig(); err != nil {
-		log.Fatal("error initializing configs: %s", err.Error())
+		log.Fatalf("error initializing configs: %s", err.Error())
 	}
 
 	repos := repository.NewRepository()
