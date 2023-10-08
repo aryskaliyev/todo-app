@@ -35,5 +35,5 @@ func (r *TodoListPostgres) Create(userId int, list todo.TodoList) (int, error) {
 		return 0, err
 	}
 
-	return id, nil
+	return id, tx.Commit()
 }

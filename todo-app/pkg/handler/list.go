@@ -19,7 +19,7 @@ func (h *Handler) createList(c *gin.Context) {
 		return
 	}
 
-	// call service method
+	id, err := h.services.TodoList.Create(id.(int), input)
 }
 
 func (h *Handler) getAllLists(c *gin.Context) {}
