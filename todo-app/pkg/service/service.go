@@ -11,7 +11,9 @@ type Authorization interface {
 	ParseToken(token string) (int, error)
 }
 
-type TodoList interface {}
+type TodoList interface {
+	Create(userId int, list todo.TodoList) (int, error)
+}
 
 type TodoItem interface {}
 
