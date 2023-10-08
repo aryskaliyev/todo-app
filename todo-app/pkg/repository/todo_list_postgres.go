@@ -2,6 +2,8 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"lincoln.boris/todo"
+	"fmt"
 )
 
 type TodoListPostgres struct {
@@ -10,4 +12,28 @@ type TodoListPostgres struct {
 
 func NewTodoListPostgres(db *sqlx.DB) *TodoListPostgres {
 	return &TodoListPostgres{db: db}
+}
+
+func (r *TodoListPostgres) Create(userId int, list todo.TodoList) (int, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, nil
+	}
+
+	var id int
+	createListQuery := fmt.Sprintf("INSERT INTO %s (title, description) VALUES ($1, $2) RETURNING id", todoListsTable)
+	row := tx.QueryRow(createListQuery, list.Title, list.Description)
+	if err := row.Scan(&id); err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	createUsersListQuery := fmt.Sprintf("INSERT INTO %s (user_id, list_id) VALUES ($1, $2)", usersListsTable)
+	_, err = tx.Exec(createUsersListQuery, userId, id)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	return id, nil
 }

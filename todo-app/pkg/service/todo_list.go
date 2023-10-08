@@ -1,7 +1,8 @@
 package service
 
 import (
-	"lincon.boris/todo/pkg/repository"
+	"lincoln.boris/todo"
+	"lincoln.boris/todo/pkg/repository"
 )
 
 type TodoListService struct {
