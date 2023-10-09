@@ -15,7 +15,7 @@ func NewTodoItemPostgres(db *sqlx.DB) *TodoItemPostgres {
 }
 
 func (r *TodoItemPostgres) Create(listId int, item todo.TodoItem) (int, error) {
-	t, err := r.db.Begin()
+	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
@@ -31,7 +31,7 @@ func (r *TodoItemPostgres) Create(listId int, item todo.TodoItem) (int, error) {
 	}
 
 	createListItemsQuery := fmt.Sprintf("INSERT INTO %s (list_id, item_id) VALUES ($1, $2)", listsItemsTable)
-	_, err := tx.Exec(createListItemsQuery, listId, itemId)
+	_, err = tx.Exec(createListItemsQuery, listId, itemId)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -39,3 +39,31 @@ func (r *TodoItemPostgres) Create(listId int, item todo.TodoItem) (int, error) {
 
 	return itemId, tx.Commit()
 }
+
+func (r *TodoItemPostgres) GetAll(userId, listId int) ([]todo.TodoItem, error) {
+	var items []todo.TodoItem
+	query := fmt.Sprintf(`SELECT ti.id, ti.title, ti.description, ti.done FROM %s ti INNER JOIN %s li ON li.item_id = ti.id INNER JOIN %s ul ON ul.list_id = li.list_id WHERE li.list_id = $1 AND ul.user_id = $2`, todoItemsTable, listsItemsTable, usersListsTable)
+	if err := r.db.Select(&items, query, listId, userId); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (r *TodoItemPostgres) GetById(userId, itemId int) (todo.TodoItem, error) {
+	var item todo.TodoItem
+	query := fmt.Sprintf(`SELECT ti.id, ti.title, ti.description, ti.done FROM %s ti INNER JOIN %s li ON li.item_id = ti.id INNER JOIN %s ul ON ul.list_id = li.list_id WHERE ti.id = $1 AND ul.user_id = $2`, todoItemsTable, listsItemsTable, usersListsTable)
+	if err := r.db.Get(&item, query, itemId, userId); err != nil {
+		return item, err
+	}
+
+	return item, nil
+}
+
+func (r *TodoItemPostgres) Delete(userId, itemId int) error {
+	query := fmt.Sprintf(`DELETE FROM %s ti USING %s li, %s ul WHERE ti.id = li.item_id AND li.list_id = ul.list_id AND ul.user_id = $1 AND ti.id = $2`, todoItemsTable, listsItemsTable, usersListsTable)
+	_, err := r.db.Exec(query, userId, itemId)
+	return err
+}
+
+func (r *TodoItemPostgres) Update(userId, itemId int, input todo.UpdateItemInput) error {}
