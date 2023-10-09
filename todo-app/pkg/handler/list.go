@@ -90,7 +90,14 @@ func (h *Handler) updateList(c *gin.Context) {
 		return
 	}
 
-	h.services.Update(userId, id, input)
+	if err := h.services.Update(userId, id, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
 }
 
 func (h *Handler) deleteList(c *gin.Context) {
